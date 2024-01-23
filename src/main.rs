@@ -1,28 +1,26 @@
 use reqwest;
+use rss::Channel;
+use select::document::Document;
+use select::predicate::{Attr, Name};
 
 #[tokio::main]
-async fn main() -> Result<(), reqwest::Error> {
-    // The URL you want to request
+async fn main(){
     let url = "https://phys.org/rss-feed/physics-news/rss/";
 
     // Build a client with a custom user-agent header
     let client = reqwest::Client::builder()
         .user_agent("Rust Science Feed ")
-        .build()?;
+        .build().unwrap();
 
     // Perform a GET request to the URL using the custom client
-    let response = client.get(url).send().await?;
+    let response = client.get(url).send().await.unwrap();
 
-    // Check if the request was successful (status code 200)
-    if response.status().is_success() {
-        // Read the response body as a string
-        let html = response.text().await?;
+    // Read the response body as a string
+    let html = response.bytes().await.unwrap();
+    let channel = Channel::read_from(&html[..]).unwrap();
 
-        // Print the HTML content
-        println!("{}", html);
-    } else {
-        println!("Request failed with status code: {}", response.status());
+    // Print all the titles of the items
+    for item in channel.items {
+        println!("{:?}", item.title.unwrap());
     }
-
-    Ok(())
 }

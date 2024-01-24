@@ -1,9 +1,14 @@
 use reqwest;
+use rocket::{get, routes};
+use rocket::fs::FileServer;
 use rss::Channel;
-use select::document::Document;
-use select::predicate::{Attr, Name};
 
-#[tokio::main]
+#[get("/")]
+fn index() -> &'static str {
+    "Hello World!"
+}
+
+#[rocket::main]
 async fn main(){
     let url = "https://phys.org/rss-feed/physics-news/rss/";
 
@@ -19,8 +24,8 @@ async fn main(){
     let html = response.bytes().await.unwrap();
     let channel = Channel::read_from(&html[..]).unwrap();
 
-    // Print all the titles of the items
-    for item in channel.items {
-        println!("{:?}", item.title.unwrap());
-    }
+    let _rocket = rocket::build()
+        .mount("/", FileServer::from("side"))
+        .launch()
+        .await;
 }
